@@ -16,6 +16,9 @@ output:
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 ```
 
+
+
+```{r}
 # # Data Science at TUHH ------------------------------------------------------
 # # SALES ANALYSIS ----
 #
@@ -26,18 +29,18 @@ library(readxl)
 #
 # # 2.0 Importing Files ----
 # # A good convention is to use the file name and suffix it with tbl for the data structure tibble
-bikes_tbl      <- read_excel(path = "00_data/01_bike_sales/01_raw_data/bikes.xlsx")
-orderlines_tbl <- read_excel("00_data/01_bike_sales/01_raw_data/orderlines.xlsx")
+bikes_tbl      <- read_excel(path = "DS_101/DS_101/00_data/01_bike_sales/01_raw_data/bikes.xlsx")
+orderlines_tbl <- read_excel("DS_101/DS_101/00_data/01_bike_sales/01_raw_data/orderlines.xlsx")
 #
 # # Not necessary for this analysis, but for the sake of completeness
-bikeshops_tbl  <- read_excel("00_data/01_bike_sales/01_raw_data/bikeshops.xlsx")
+bikeshops_tbl  <- read_excel("DS_101/DS_101/00_data/01_bike_sales/01_raw_data/bikeshops.xlsx")
 #
 # # 3.0 Examining Data ----
 # orderlines_tbl
 # glimpse(orderlines_tbl)
 # # 4.0 Joining Data ----
 left_join(orderlines_tbl, bikes_tbl)
-left_join(orderlines_tbl, bikes_tbl, by = c("product.id" = "bike.id"))
+#left_join(orderlines_tbl, bikes_tbl, by = #c("product.id" = "bike.id"))
 bike_orderlines_joined_tbl <- orderlines_tbl %>%
   left_join(bikes_tbl, by = c("product.id" = "bike.id")) %>%
   left_join(bikeshops_tbl, by = c("customer.id" = "bikeshop.id"))
@@ -183,15 +186,15 @@ sales_by_year_cat_1_tbl <- bike_orderlines_wrangled_tbl %>%
 # # install.packages("writexl")
 library("writexl")
 bike_orderlines_wrangled_tbl %>%
-    write_xlsx("00_data/01_bike_sales/02_wrangled_data/bike_orderlines.xlsx")
+    write_xlsx("DS_101/DS_101/00_data/01_bike_sales/02_wrangled_data/bike_orderlines.xlsx")
 # #
 # # # 7.2 CSV ----
 bike_orderlines_wrangled_tbl %>%
-    write_csv("00_data/01_bike_sales/02_wrangled_data/bike_orderlines.csv")
+    write_csv("DS_101/DS_101/00_data/01_bike_sales/02_wrangled_data/bike_orderlines.csv")
 # #
 # # # 7.3 RDS ----
 bike_orderlines_wrangled_tbl %>%
-   write_rds("00_data/01_bike_sales/02_wrangled_data/bike_orderlines.rds")
+   write_rds("DS_101/DS_101/00_data/01_bike_sales/02_wrangled_data/bike_orderlines.rds")
 # # # 7.1 Excel ----
 # #
 # # # 7.2 CSV ----
@@ -261,39 +264,5 @@ sales_by_location_cat_1_tbl %>%
     subtitle = "Nordrhein-Westfalen has the largest sales",
     fill = "state" # Changes the legend name
   )
-<!-- **IMPORTANT:** You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing. -->
+```
 
-<!-- This is an `.Rmd` file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a \# in front of your text, it will create a top level-header. -->
-
-<!-- # My first post -->
-
-<!-- Last compiled: `r Sys.Date()` -->
-
-<!-- Notice that whatever you define as a top level header, automatically gets put into the table of contents bar on the left.  -->
-
-<!-- ## Second level header -->
-
-<!-- You can add more headers by adding more hashtags. These won't be put into the table of contents -->
-
-<!-- ### third level header -->
-
-<!-- Here's an even lower level header -->
-
-<!-- # My second post (note the order) -->
-
-<!-- Last compiled: `r Sys.Date()` -->
-
-<!-- I'm writing this tutorial going from the top down. And, this is how it will be printed. So, notice the second post is second in the list. If you want your most recent post to be at the top, then make a new post starting at the top. If you want the oldest first, do, then keep adding to the bottom -->
-
-<!-- # Adding R stuff -->
-
-<!-- So far this is just a blog where you can write in plain text and serve your writing to a webpage. One of the main purposes of this lab journal is to record your progress learning R. The reason I am asking you to use this process is because you can both make a website, and a lab journal, and learn R all in R-studio. This makes everything really convenient and in the same place.  -->
-
-<!-- So, let's say you are learning how to make a histogram in R. For example, maybe you want to sample 100 numbers from a normal distribution with mean = 0, and standard deviation = 1, and then you want to plot a histogram. You can do this right here by using an r code block, like this: -->
-
-<!-- ```{r} -->
-<!-- samples <- rnorm(100, mean=0, sd=1) -->
-<!-- hist(samples) -->
-<!-- ``` -->
-
-<!-- When you knit this R Markdown document, you will see that the histogram is printed to the page, along with the R code. This document can be set up to hide the R code in the webpage, just delete the comment (hashtag) from the cold folding option in the yaml header up top. For purposes of letting yourself see the code, and me see the code, best to keep it the way that it is. You'll learn that all of these things and more can be customized in each R code block. -->
