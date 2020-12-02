@@ -786,11 +786,7 @@ get_bike_data &lt;- function(url) {
   
   html_bike_category &lt;- read_html(url)
   
-  # Get the URLs
-  bike_url_tbl  &lt;- html_bike_category %&gt;%
-    html_nodes(css = &quot;.catalog-category-bikes__list-item &gt; a&quot;) %&gt;%
-    html_attr(&quot;href&quot;) %&gt;%
-    enframe(name = &quot;position&quot;, value = &quot;url&quot;)
+  
   
   # Get the names
   bike_name_tbl &lt;- html_bike_category %&gt;%
@@ -804,8 +800,8 @@ get_bike_data &lt;- function(url) {
     html_nodes(css = &quot;.catalog-category-bikes__price-title&quot;) %&gt;%
     html_text() %&gt;%
     enframe(name = &quot;position&quot;, value = &quot;price&quot;) %&gt;%
-    left_join(bike_name_tbl) %&gt;%
-    left_join(bike_url_tbl)
+    left_join(bike_name_tbl)
+    
 }
 
 # 2.3.1b Alternative with a for loop
@@ -824,10 +820,14 @@ for (i in seq_along(bike_category_tbl$url)) {
   Sys.sleep(3)
   
 }
+bike_data_tbl &lt;- bike_data_tbl %&gt;%
+  rename(&quot;model&quot; = &quot;name&quot;)%&gt;%
+  subset(price!= &quot;\n&quot;)
+  
 bike_data_tbl</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["price"],"name":[2],"type":["chr"],"align":["left"]},{"label":["name"],"name":[3],"type":["chr"],"align":["left"]},{"label":["url"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"\\nab 1.699,00<U+00A0>€\\n","3":"\\nGROUND CONTROL\\n","4":"NA"},{"1":"2","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nROOT MILLER\\n","4":"NA"},{"1":"3","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nPIKES PEAK\\n","4":"NA"},{"1":"4","2":"\\n","3":"\\nTHE BRUCE\\n","4":"NA"},{"1":"5","2":"\\n","3":"\\nCOUNT SOLO\\n","4":"NA"},{"1":"6","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPSYCHO PATH\\n","4":"NA"},{"1":"7","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nTHRILL HILL\\n","4":"NA"},{"1":"8","2":"\\nab 2.899,00<U+00A0>€\\n","3":"\\nTHRILL HILL TRAIL\\n","4":"NA"},{"1":"9","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nSOUL FIRE\\n","4":"NA"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nPRO SL DISC\\n","4":"NA"},{"1":"2","2":"\\nab 1.199,00<U+00A0>€\\n","3":"\\nPRO SL\\n","4":"NA"},{"1":"3","2":"\\nab 2.499,00<U+00A0>€\\n","3":"\\nREVEAL FOUR DISC\\n","4":"NA"},{"1":"4","2":"\\nab 2.099,00<U+00A0>€\\n","3":"\\nREVEAL FOUR\\n","4":"NA"},{"1":"5","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nREVEAL SIX DISC\\n","4":"NA"},{"1":"6","2":"\\nab 2.699,00<U+00A0>€\\n","3":"\\nX-LITE FOUR DISC\\n","4":"NA"},{"1":"7","2":"\\nab 2.199,00<U+00A0>€\\n","3":"\\nX-LITE FOUR\\n","4":"NA"},{"1":"8","2":"\\nab 3.899,00<U+00A0>€\\n","3":"\\nX-LITE SIX DISC\\n","4":"NA"},{"1":"9","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nX-LITE SIX\\n","4":"NA"},{"1":"1","2":"\\nab 1.549,00<U+00A0>€\\n","3":"\\n BACKROAD AL\\n","4":"NA"},{"1":"2","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nBACKROAD\\n","4":"NA"},{"1":"3","2":"\\nab 4.599,00<U+00A0>€\\n","3":"\\nBACKROAD LIMITED\\n","4":"NA"},{"1":"1","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPRO CROSS\\n","4":"NA"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nBLACK LAVA\\n","4":"NA"},{"1":"2","2":"\\nab 1.149,00<U+00A0>€\\n","3":"\\nMULTISPORT TREKKING\\n","4":"NA"},{"1":"3","2":"\\nab 1.649,00<U+00A0>€\\n","3":"\\nMULTISTREET TREKKING\\n","4":"NA"},{"1":"1","2":"\\nab 1.299,00<U+00A0>€\\n","3":"\\nMULTISTREET FITNESS\\n","4":"NA"},{"1":"2","2":"\\nab 1.099,00<U+00A0>€\\n","3":"\\nMULTISPORT FITNESS\\n","4":"NA"},{"1":"3","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nMULTICROSS\\n","4":"NA"},{"1":"1","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nBACKROAD AL RANDONNEUR\\n","4":"NA"},{"1":"2","2":"\\nab 2.999,00<U+00A0>€\\n","3":"\\n BACKROAD RANDONNEUR\\n","4":"NA"},{"1":"3","2":"\\nab 2.399,00<U+00A0>€\\n","3":"\\nACTIVA PRO\\n","4":"NA"},{"1":"4","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nACTIVA PRO PINION\\n","4":"NA"},{"1":"1","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nCPTL\\n","4":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["price"],"name":[2],"type":["chr"],"align":["left"]},{"label":["model"],"name":[3],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"\\nab 1.699,00<U+00A0>€\\n","3":"\\nGROUND CONTROL\\n"},{"1":"2","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nROOT MILLER\\n"},{"1":"3","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nPIKES PEAK\\n"},{"1":"6","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPSYCHO PATH\\n"},{"1":"7","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nTHRILL HILL\\n"},{"1":"8","2":"\\nab 2.899,00<U+00A0>€\\n","3":"\\nTHRILL HILL TRAIL\\n"},{"1":"9","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nSOUL FIRE\\n"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nPRO SL DISC\\n"},{"1":"2","2":"\\nab 1.199,00<U+00A0>€\\n","3":"\\nPRO SL\\n"},{"1":"3","2":"\\nab 2.499,00<U+00A0>€\\n","3":"\\nREVEAL FOUR DISC\\n"},{"1":"4","2":"\\nab 2.099,00<U+00A0>€\\n","3":"\\nREVEAL FOUR\\n"},{"1":"5","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nREVEAL SIX DISC\\n"},{"1":"6","2":"\\nab 2.699,00<U+00A0>€\\n","3":"\\nX-LITE FOUR DISC\\n"},{"1":"7","2":"\\nab 2.199,00<U+00A0>€\\n","3":"\\nX-LITE FOUR\\n"},{"1":"8","2":"\\nab 3.899,00<U+00A0>€\\n","3":"\\nX-LITE SIX DISC\\n"},{"1":"9","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nX-LITE SIX\\n"},{"1":"1","2":"\\nab 1.549,00<U+00A0>€\\n","3":"\\nBACKROAD AL\\n"},{"1":"2","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nBACKROAD\\n"},{"1":"3","2":"\\nab 4.599,00<U+00A0>€\\n","3":"\\n BACKROAD LIMITED\\n"},{"1":"1","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPRO CROSS\\n"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nBLACK LAVA\\n"},{"1":"2","2":"\\nab 1.149,00<U+00A0>€\\n","3":"\\nMULTISPORT TREKKING\\n"},{"1":"3","2":"\\nab 1.649,00<U+00A0>€\\n","3":"\\nMULTISTREET TREKKING\\n"},{"1":"1","2":"\\nab 1.299,00<U+00A0>€\\n","3":"\\nMULTISTREET FITNESS\\n"},{"1":"2","2":"\\nab 1.099,00<U+00A0>€\\n","3":"\\nMULTISPORT FITNESS\\n"},{"1":"3","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nMULTICROSS\\n"},{"1":"1","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nBACKROAD AL RANDONNEUR\\n"},{"1":"2","2":"\\nab 2.999,00<U+00A0>€\\n","3":"\\nBACKROAD RANDONNEUR\\n"},{"1":"3","2":"\\nab 2.399,00<U+00A0>€\\n","3":"\\nACTIVA PRO\\n"},{"1":"4","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nACTIVA PRO PINION\\n"},{"1":"1","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nCPTL\\n"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <pre class="r"><code>saveRDS(bike_data_tbl, &quot;rosebikes_data_tbl.rds&quot;)</code></pre>
