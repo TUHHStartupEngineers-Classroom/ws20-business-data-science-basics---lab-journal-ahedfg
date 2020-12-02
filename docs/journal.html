@@ -715,6 +715,122 @@ as_tibble(RESULTS)</code></pre>
   </script>
 </div>
 <pre class="r"><code>write.csv(RESULTS, &quot;openAPIData.csv&quot;,row.names = FALSE)</code></pre>
+<pre class="r"><code>library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
+library(rvest)     # HTML Hacking &amp; Web Scraping
+library(xopen)     # Quickly opening URLs
+library(jsonlite)  # converts JSON files to R objects
+library(glue)      # concatenate strings
+library(stringi)
+url_home          &lt;- &quot;https://www.rosebikes.de/fahrr%C3%A4der&quot;
+
+# Read in the HTML for the entire webpage
+html_home         &lt;- read_html(url_home)
+
+# Web scrape the ids for the families
+bike_family_tbl &lt;- html_home %&gt;%
+  
+  # Get the nodes for the families ...
+  html_nodes(css = &quot;.catalog-navigation__list-item &gt; a&quot;) %&gt;%
+  # ...and extract the information of the id attribute
+  html_attr(&#39;title&#39;) %&gt;%
+  
+  # Remove the product families Gear and Outlet and Woman 
+  # (because the female bikes are also listed with the others)
+  discard(.p = ~stringr::str_detect(.x,&quot;Kinder|Sale|Bike-Finder&quot;)) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;family_class&quot;) %&gt;%
+  
+  # Add a hashtag so we can get nodes of the categories by id (#)
+  mutate(
+    family_id = str_glue(&quot;#{family_class}&quot;)
+  )
+
+family_id_css &lt;- bike_family_tbl %&gt;%
+  pull(family_id) %&gt;%
+  stringr::str_c(collapse = &quot;, &quot;)
+
+
+
+
+
+
+# Extract the urls from the href attribute
+bike_category_tbl &lt;- html_home %&gt;%
+  
+  # Selecting two classes makes it specific enough
+  html_nodes(css = &quot;.catalog-navigation__list-item &gt; a&quot;) %&gt;%
+  html_attr(&#39;href&#39;) %&gt;%
+  discard(.p = ~stringr::str_detect(.x,&quot;kinder|sale|zoovu&quot;)) %&gt;%
+  
+  # Convert vector to tibble
+  enframe(name = &quot;position&quot;, value = &quot;subdirectory&quot;) %&gt;%
+  
+  # Add the domain, because we will get only the subdirectories
+  mutate(
+    url = glue(&quot;https://www.rosebikes.de{subdirectory}&quot;)
+  ) %&gt;%
+  
+  # Some categories are listed multiple times.
+  # We only need unique values
+  distinct(url)
+
+
+
+
+
+
+
+
+get_bike_data &lt;- function(url) {
+  
+  html_bike_category &lt;- read_html(url)
+  
+  # Get the URLs
+  bike_url_tbl  &lt;- html_bike_category %&gt;%
+    html_nodes(css = &quot;.catalog-category-bikes__list-item &gt; a&quot;) %&gt;%
+    html_attr(&quot;href&quot;) %&gt;%
+    enframe(name = &quot;position&quot;, value = &quot;url&quot;)
+  
+  # Get the names
+  bike_name_tbl &lt;- html_bike_category %&gt;%
+    html_nodes(css = &quot;.catalog-category-bikes__title-text&quot;) %&gt;%
+    html_text() %&gt;%
+    enframe(name = &quot;position&quot;, value = &quot;name&quot;)
+    
+
+  # Get the prices
+  bike_price_tbl &lt;- html_bike_category %&gt;%
+    html_nodes(css = &quot;.catalog-category-bikes__price-title&quot;) %&gt;%
+    html_text() %&gt;%
+    enframe(name = &quot;position&quot;, value = &quot;price&quot;) %&gt;%
+    left_join(bike_name_tbl) %&gt;%
+    left_join(bike_url_tbl)
+}
+
+# 2.3.1b Alternative with a for loop
+
+# Create an empty tibble, that we can populate
+bike_data_tbl &lt;- tibble()
+
+# Loop through all urls
+for (i in seq_along(bike_category_tbl$url)) {
+  
+  bike_category_url &lt;- bike_category_tbl$url[i]
+  bike_data_tbl     &lt;- bind_rows(bike_data_tbl, get_bike_data(bike_category_url))
+  
+  # Wait between each request to reduce the load on the server 
+  # Otherwise we could get blocked
+  Sys.sleep(3)
+  
+}
+bike_data_tbl</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["position"],"name":[1],"type":["int"],"align":["right"]},{"label":["price"],"name":[2],"type":["chr"],"align":["left"]},{"label":["name"],"name":[3],"type":["chr"],"align":["left"]},{"label":["url"],"name":[4],"type":["chr"],"align":["left"]}],"data":[{"1":"1","2":"\\nab 1.699,00<U+00A0>€\\n","3":"\\nGROUND CONTROL\\n","4":"NA"},{"1":"2","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nROOT MILLER\\n","4":"NA"},{"1":"3","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nPIKES PEAK\\n","4":"NA"},{"1":"4","2":"\\n","3":"\\nTHE BRUCE\\n","4":"NA"},{"1":"5","2":"\\n","3":"\\nCOUNT SOLO\\n","4":"NA"},{"1":"6","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPSYCHO PATH\\n","4":"NA"},{"1":"7","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nTHRILL HILL\\n","4":"NA"},{"1":"8","2":"\\nab 2.899,00<U+00A0>€\\n","3":"\\nTHRILL HILL TRAIL\\n","4":"NA"},{"1":"9","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nSOUL FIRE\\n","4":"NA"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nPRO SL DISC\\n","4":"NA"},{"1":"2","2":"\\nab 1.199,00<U+00A0>€\\n","3":"\\nPRO SL\\n","4":"NA"},{"1":"3","2":"\\nab 2.499,00<U+00A0>€\\n","3":"\\nREVEAL FOUR DISC\\n","4":"NA"},{"1":"4","2":"\\nab 2.099,00<U+00A0>€\\n","3":"\\nREVEAL FOUR\\n","4":"NA"},{"1":"5","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nREVEAL SIX DISC\\n","4":"NA"},{"1":"6","2":"\\nab 2.699,00<U+00A0>€\\n","3":"\\nX-LITE FOUR DISC\\n","4":"NA"},{"1":"7","2":"\\nab 2.199,00<U+00A0>€\\n","3":"\\nX-LITE FOUR\\n","4":"NA"},{"1":"8","2":"\\nab 3.899,00<U+00A0>€\\n","3":"\\nX-LITE SIX DISC\\n","4":"NA"},{"1":"9","2":"\\nab 3.499,00<U+00A0>€\\n","3":"\\nX-LITE SIX\\n","4":"NA"},{"1":"1","2":"\\nab 1.549,00<U+00A0>€\\n","3":"\\n BACKROAD AL\\n","4":"NA"},{"1":"2","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nBACKROAD\\n","4":"NA"},{"1":"3","2":"\\nab 4.599,00<U+00A0>€\\n","3":"\\nBACKROAD LIMITED\\n","4":"NA"},{"1":"1","2":"\\nab 1.849,00<U+00A0>€\\n","3":"\\nPRO CROSS\\n","4":"NA"},{"1":"1","2":"\\nab 1.599,00<U+00A0>€\\n","3":"\\nBLACK LAVA\\n","4":"NA"},{"1":"2","2":"\\nab 1.149,00<U+00A0>€\\n","3":"\\nMULTISPORT TREKKING\\n","4":"NA"},{"1":"3","2":"\\nab 1.649,00<U+00A0>€\\n","3":"\\nMULTISTREET TREKKING\\n","4":"NA"},{"1":"1","2":"\\nab 1.299,00<U+00A0>€\\n","3":"\\nMULTISTREET FITNESS\\n","4":"NA"},{"1":"2","2":"\\nab 1.099,00<U+00A0>€\\n","3":"\\nMULTISPORT FITNESS\\n","4":"NA"},{"1":"3","2":"\\nab 2.149,00<U+00A0>€\\n","3":"\\nMULTICROSS\\n","4":"NA"},{"1":"1","2":"\\nab 1.999,00<U+00A0>€\\n","3":"\\nBACKROAD AL RANDONNEUR\\n","4":"NA"},{"1":"2","2":"\\nab 2.999,00<U+00A0>€\\n","3":"\\n BACKROAD RANDONNEUR\\n","4":"NA"},{"1":"3","2":"\\nab 2.399,00<U+00A0>€\\n","3":"\\nACTIVA PRO\\n","4":"NA"},{"1":"4","2":"\\nab 3.099,00<U+00A0>€\\n","3":"\\nACTIVA PRO PINION\\n","4":"NA"},{"1":"1","2":"\\nab 2.599,00<U+00A0>€\\n","3":"\\nCPTL\\n","4":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>saveRDS(bike_data_tbl, &quot;rosebikes_data_tbl.rds&quot;)</code></pre>
 
 
 
