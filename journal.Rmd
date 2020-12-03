@@ -311,7 +311,7 @@ as_tibble(RESULTS)
 write.csv(RESULTS, "openAPIData.csv",row.names = FALSE)
 ```
 
-```{R}
+```{r}
 library(tidyverse) # Main Package - Loads dplyr, purrr, etc.
 library(rvest)     # HTML Hacking & Web Scraping
 library(xopen)     # Quickly opening URLs
@@ -319,10 +319,9 @@ library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)
 library(tidyr)
-library(readr)
 
 url_home          <- "https://www.rosebikes.de/fahrr%C3%A4der"
-
+xopen(url_home)
 # Read in the HTML for the entire webpage
 html_home         <- read_html(url_home)
 

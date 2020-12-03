@@ -722,11 +722,11 @@ library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)
 library(tidyr)
-library(readr)
 
 url_home          &lt;- &quot;https://www.rosebikes.de/fahrr%C3%A4der&quot;
-
-# Read in the HTML for the entire webpage
+xopen(url_home)</code></pre>
+<pre><code>## Running cmd /c start &quot;\&quot;\&quot;&quot; /b &quot;https://www.rosebikes.de/fahrr%C3%A4der&quot;</code></pre>
+<pre class="r"><code># Read in the HTML for the entire webpage
 html_home         &lt;- read_html(url_home)
 
 # Web scrape the ids for the families
