@@ -35,8 +35,8 @@ family_id_css <- bike_family_tbl %>%
 
 bike_family_tbl
 
-
-
+?as.numeric
+?gsub
 
 
 # Extract the urls from the href attribute
@@ -75,6 +75,7 @@ get_bike_data <- function(url) {
     html_nodes(css = ".catalog-category-bikes__title-text") %>%
     html_text() %>%
     str_remove_all(pattern = "\n") %>%
+    
     enframe(name = "position", value = "name")
     
 
@@ -82,12 +83,20 @@ get_bike_data <- function(url) {
   bike_price_tbl <- html_bike_category %>%
     html_nodes(css = ".catalog-category-bikes__price-title") %>%
     html_text() %>%
-    str_remove_all(pattern = "\n") %>%
+    sub("." , ",")%>%
     enframe(name = "position", value = "price") %>%
     left_join(bike_name_tbl) %>%
     left_join(bike_url_tbl)
 }
-
+?sub
+?format
+?nchar
+?str_remove_all
+?readr::parse_number()
+?trunc
+help("::")
+?str_remove
+??multiply
 # 2.3.1b Alternative with a for loop
 
 # Create an empty tibble, that we can populate
@@ -105,7 +114,8 @@ for (i in seq_along(bike_category_tbl$url)) {
   
   # print the progress
   print(i)
-  
+?format
+  ?nchar
 }
 bike_data_tbl <- bike_data_tbl %>%
   rename("model" = "name")
@@ -113,3 +123,5 @@ bike_data_tbl
 saveRDS(bike_data_tbl, "rosebikes_data_tbl.rds")
 
 ?replace
+?formatC
+?extract_numeric
