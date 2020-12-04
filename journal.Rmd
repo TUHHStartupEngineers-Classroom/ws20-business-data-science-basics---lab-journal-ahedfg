@@ -16,7 +16,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 knitr::opts_chunk$set(echo = TRUE, error = TRUE)
-
 ```
 
 
@@ -202,11 +201,7 @@ bike_orderlines_wrangled_tbl %>%
 # # # 7.2 CSV ----
 # #
 # # # 7.3 RDS ----
-
-
-
 # #sales plot by state
-
 bike_orderlines_wrangled2_tbl <- bike_orderlines_wrangled_tbl %>%
    separate(col    = location,
           into   = c("city", "state"),
@@ -233,11 +228,7 @@ sales_by_location_cat_1_tbl %>%
      subtitle = "Nordrhein-Westfalen has the largest sales",
      fill = "state" # Changes the legend name
    )
-
-
-
 #sales plot by location and year
-
 sales_by_location_cat_1_tbl <- bike_orderlines_wrangled2_tbl %>%
   select(total_price, state, order_date) %>%
   mutate(year = year(order_date)) %>%
@@ -273,17 +264,13 @@ sales_by_location_cat_1_tbl %>%
 library(XML)
 library(data.table)
 library(stringr)
-
 BOK_urllist <- list()
 BOK_urllist[[1]] <- "http://ecos.bok.or.kr/api/KeyStatisticList/QM0K0ZGLSB6BKFKTGJEZ/xml/kr/1/101/"
-
 BOK_raw.data <- list()
 BOK_rootNode <- list()
 BOK_raw.data[[1]] <- xmlTreeParse(BOK_urllist[1], useInternalNodes = TRUE,encoding = "utf-8") # 생성한 URL 대로 XML 을 요청
 BOK_rootNode[[1]] <- xmlRoot(BOK_raw.data[[1]])
-
 BOK_total <- list()
-
 for(i in 1:length(BOK_urllist)){
   
   BOK_item <- list()
@@ -305,7 +292,6 @@ for(i in 1:length(BOK_urllist)){
   }
   BOK_total[[i]] <- rbindlist(BOK_item)
 }
-
 RESULTS <- rbindlist(BOK_total)
 as_tibble(RESULTS)
 write.csv(RESULTS, "openAPIData.csv",row.names = FALSE)
@@ -319,12 +305,10 @@ library(jsonlite)  # converts JSON files to R objects
 library(glue)      # concatenate strings
 library(stringi)
 library(tidyr)
-
 url_home          <- "https://www.rosebikes.de/fahrr%C3%A4der"
 xopen(url_home)
 # Read in the HTML for the entire webpage
 html_home         <- read_html(url_home)
-
 # Web scrape the ids for the families
 bike_family_tbl <- html_home %>%
   
@@ -344,16 +328,9 @@ bike_family_tbl <- html_home %>%
   mutate(
     family_id = str_glue("#{family_class}")
   )
-
 family_id_css <- bike_family_tbl %>%
   pull(family_id) %>%
   stringr::str_c(collapse = ", ")
-
-
-
-
-
-
 # Extract the urls from the href attribute
 bike_category_tbl <- html_home %>%
   
@@ -373,14 +350,6 @@ bike_category_tbl <- html_home %>%
   # Some categories are listed multiple times.
   # We only need unique values
   distinct(url)
-
-
-
-
-
-
-
-
 get_bike_data <- function(url) {
   
   html_bike_category <- read_html(url)
@@ -394,23 +363,20 @@ get_bike_data <- function(url) {
     str_remove_all(pattern = "\n") %>%
     enframe(name = "position", value = "name")
     
-
   # Get the prices
   bike_price_tbl <- html_bike_category %>%
     html_nodes(css = ".catalog-category-bikes__price-title") %>%
     html_text() %>%
     
     extract_numeric()%>%
+    "*"(1000)%>%
     enframe(name = "position", value = "price_euro") %>%
     left_join(bike_name_tbl)
     
 }
-
 # 2.3.1b Alternative with a for loop
-
 # Create an empty tibble, that we can populate
 bike_data_tbl <- tibble()
-
 # Loop through all urls
 for (i in seq_along(bike_category_tbl$url)) {
   
@@ -425,8 +391,265 @@ for (i in seq_along(bike_category_tbl$url)) {
 bike_data_tbl <- bike_data_tbl %>%
   rename("model" = "name")%>%
   subset(nchar(price_euro)!=0)
-
-  
+   
 bike_data_tbl
 saveRDS(bike_data_tbl, "rosebikes_data_tbl.rds")
+```
+
+```{r}
+library(tidyverse)
+library(vroom)
+library(tibble)
+# Data Table
+library(data.table)
+library(dplyr)
+
+col_types <- list(
+  id = col_character(),
+  date = col_date("%Y-%m-%d"),
+  num_claims = col_double()
+)
+
+patent_tbl <- vroom(
+  file       = "Patent_data_reduced/patent.tsv",
+  delim      = "\t",
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+patent_tbl <- patent_tbl %>%
+  
+  rename(patent_id = id)
+
+
+
+col_types2 <-list(
+  patent_id = col_character(),
+  assignee_id = col_character()
+)
+
+patent_assignee_tbl <-vroom(
+  file = "Patent_data_reduced/patent_assignee.tsv",
+  delim = "\t",
+  col_types = col_types2,
+  na = c("","NA","NULL")
+)
+
+
+col_types3 <- list(
+  id = col_character(),
+  type = col_double(),
+  organization = col_character()
+  
+)
+assignee_tbl <- vroom(
+  file       = "Patent_data_reduced/assignee.tsv",
+  delim      = "\t",
+  col_types  = col_types3,
+  na         = c("", "NA", "NULL")
+)
+assignee_tbl <-assignee_tbl%>%
+  
+  rename(assignee_id = id)
+
+setDT(assignee_tbl)
+setDT(patent_tbl)
+setDT(patent_assignee_tbl)
+combined_data <- merge(x = patent_tbl, y = patent_assignee_tbl, 
+                       by    = "patent_id", 
+                       all.x = TRUE, 
+                       all.y = FALSE)
+
+
+setDT(combined_data)
+
+combined_data_2 <- merge(x =combined_data, y = assignee_tbl,
+                         by = "assignee_id",
+                         all.x = TRUE,
+                         all.y = FALSE)
+
+setDT(combined_data_2)
+setkey(combined_data_2, "assignee_id")
+
+ 
+combined_data_2 %>%
+  filter(type==2)%>%
+  group_by(organization)%>%
+  summarise(number_patents = n())%>%
+  ungroup()%>%
+  arrange(desc(number_patents))%>%
+  head(10)
+#top 10 US companies with the most granted patents
+```
+```{r}
+library(tidyverse)
+library(vroom)
+library(tibble)
+# Data Table
+library(data.table)
+library(dplyr)
+
+col_types <- list(
+  id = col_character(),
+  date = col_date("%Y-%m-%d"),
+  num_claims = col_double()
+)
+
+patent_tbl <- vroom(
+  file       = "Patent_data_reduced/patent.tsv",
+  delim      = "\t",
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+patent_tbl <- patent_tbl %>%
+  
+  rename(patent_id = id)%>%
+  separate(col = date,
+           into = c("year", "month", "date"),
+           sep = "-")
+
+
+
+col_types2 <-list(
+  patent_id = col_character(),
+  assignee_id = col_character()
+)
+
+patent_assignee_tbl <-vroom(
+  file = "Patent_data_reduced/patent_assignee.tsv",
+  delim = "\t",
+  col_types = col_types2,
+  na = c("","NA","NULL")
+)
+
+
+col_types3 <- list(
+  id = col_character(),
+  type = col_double(),
+  organization = col_character()
+  
+)
+assignee_tbl <- vroom(
+  file       = "Patent_data_reduced/assignee.tsv",
+  delim      = "\t",
+  col_types  = col_types3,
+  na         = c("", "NA", "NULL")
+)
+assignee_tbl <-assignee_tbl%>%
+  
+  rename(assignee_id = id)
+
+setDT(assignee_tbl)
+setDT(patent_tbl)
+setDT(patent_assignee_tbl)
+combined_data <- merge(x = patent_tbl, y = patent_assignee_tbl, 
+                       by    = "patent_id", 
+                       all.x = TRUE, 
+                       all.y = FALSE)
+
+
+setDT(combined_data)
+
+combined_data_2 <- merge(x =combined_data, y = assignee_tbl,
+                         by = "assignee_id",
+                         all.x = TRUE,
+                         all.y = FALSE)
+
+setDT(combined_data_2)
+setkey(combined_data_2, "assignee_id")
+
+
+combined_data_2 %>%
+  filter(type==2)%>%
+  filter(month=="02")%>%
+  group_by(organization)%>%
+  summarise(number_patents = n())%>%
+  ungroup()%>%
+  arrange(desc(number_patents))%>%
+  head(10)
+#top 10 companies with the most new patents for February
+```
+```{r}
+library(tidyverse)
+library(vroom)
+library(tibble)
+# Data Table
+library(data.table)
+library(dplyr)
+
+col_types <- list(
+  id = col_character(),
+  date = col_date("%Y-%m-%d"),
+  num_claims = col_double()
+)
+
+patent_tbl <- vroom(
+  file       = "Patent_data_reduced/patent.tsv",
+  delim      = "\t",
+  col_types  = col_types,
+  na         = c("", "NA", "NULL")
+)
+
+patent_tbl <- patent_tbl %>%
+  
+  rename(patent_id = id)%>%
+  separate(col = date,
+           into = c("year", "month", "date"),
+           sep = "-")
+
+
+
+col_types2 <-list(
+  patent_id = col_character(),
+  assignee_id = col_character()
+)
+
+patent_assignee_tbl <-vroom(
+  file = "Patent_data_reduced/patent_assignee.tsv",
+  delim = "\t",
+  col_types = col_types2,
+  na = c("","NA","NULL")
+)
+
+
+col_types3 <- list(
+  patent_id = col_character(),
+  mainclass_id = col_double()
+  
+)
+uspc_tbl <- vroom(
+  file       = "Patent_data_reduced/uspc.tsv",
+  delim      = "\t",
+  col_types  = col_types3,
+  na         = c("", "NA", "NULL")
+)
+
+
+setDT(uspc_tbl)
+setDT(patent_tbl)
+setDT(patent_assignee_tbl)
+combined_data <- merge(x = patent_tbl, y = patent_assignee_tbl, 
+                       by    = "patent_id", 
+                       all.x = TRUE, 
+                       all.y = FALSE)
+
+
+setDT(combined_data)
+
+combined_data_2 <- merge(x =combined_data, y = uspc_tbl,
+                         by = "patent_id",
+                         all.x = TRUE,
+                         all.y = FALSE)
+
+setDT(combined_data_2)
+setkey(combined_data_2, "patent_id")
+
+
+combined_data_2 %>%
+  group_by(mainclass_id)%>%
+  summarise(number_patents = n())%>%
+  ungroup()%>%
+  arrange(desc(number_patents))
+#tech area "active solid-state devices(E.G.,TRANSISTORS, SOLID-STATE DIODES)" is the most innovative field
 ```
