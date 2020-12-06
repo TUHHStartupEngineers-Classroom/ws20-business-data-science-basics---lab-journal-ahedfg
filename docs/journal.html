@@ -1062,6 +1062,34 @@ combined_data_2 %&gt;%
   </script>
 </div>
 <pre class="r"><code>#tech area &quot;active solid-state devices(E.G.,TRANSISTORS, SOLID-STATE DIODES)&quot; is the most innovative field</code></pre>
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(scales)
+#wrangling data
+covid_data_tbl &lt;- read_csv(&quot;https://opendata.ecdc.europa.eu/covid19/casedistribution/csv&quot;)
+
+covid_data_tbl &lt;- covid_data_tbl %&gt;%
+  select(dateRep, day, month, year, cases, countriesAndTerritories)%&gt;%
+  filter(year==2020)%&gt;%
+  filter(countriesAndTerritories %in% c(&quot;Germany&quot;,&quot;Spain&quot;,&quot;France&quot;,&quot;United_States_of_America&quot;,&quot;United_Kingdom&quot;))%&gt;%
+  mutate(date=dmy(dateRep))%&gt;%
+  
+  group_by(countriesAndTerritories)%&gt;%
+  arrange(date)%&gt;%
+  mutate(Cumulative_cases = cumsum(cases))%&gt;%
+  ungroup()%&gt;%
+  mutate(countriesAndTerritories = fct_reorder2(countriesAndTerritories,date,Cumulative_cases))
+  
+
+# write.csv(covid_data_tbl, &quot;covid3.csv&quot;)
+#visulization
+covid_data_tbl%&gt;%
+  ggplot(aes(date, Cumulative_cases, color = countriesAndTerritories)) +
+  geom_line(size=1, linetype = 1) +
+  xlab(&quot;Year 2020&quot;)+
+  scale_x_date(date_labels = &quot;%b&quot;)+
+  scale_y_continuous(labels = unit_format(unit = &quot;M&quot;, scale = 1e-6))</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 
 
 
