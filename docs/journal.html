@@ -1090,6 +1090,52 @@ covid_data_tbl%&gt;%
   scale_x_date(date_labels = &quot;%b&quot;)+
   scale_y_continuous(labels = unit_format(unit = &quot;M&quot;, scale = 1e-6))</code></pre>
 <p><img src="journal_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(scales)
+library(maps)
+library(ggplot2)
+
+#wrangling data
+world &lt;- map_data(&quot;world&quot;)%&gt;%
+  rename(countriesAndTerritories = region)
+covid_data_tbl &lt;- read_csv(&quot;https://opendata.ecdc.europa.eu/covid19/casedistribution/csv&quot;)
+
+covid_data_tbl &lt;- covid_data_tbl %&gt;%
+  select(dateRep, year, popData2019, deaths, countriesAndTerritories)%&gt;%
+  filter(year==2020)%&gt;%
+  mutate(across(countriesAndTerritories, str_replace_all, &quot;_&quot;, &quot; &quot;)) %&gt;%
+  mutate(countriesAndTerritories = case_when(
+    
+    countriesAndTerritories == &quot;United Kingdom&quot; ~ &quot;UK&quot;,
+    countriesAndTerritories == &quot;United States of America&quot; ~ &quot;USA&quot;,
+    countriesAndTerritories == &quot;Czechia&quot; ~ &quot;Czech Republic&quot;,
+    TRUE ~ countriesAndTerritories
+    
+  ))%&gt;%
+ 
+  
+  group_by(countriesAndTerritories,popData2019)%&gt;%
+  
+  mutate(total_deaths = sum(deaths))%&gt;%
+  
+  slice(n())%&gt;%
+  mutate(mortality_rate_percent = 100*round((total_deaths/popData2019),digits=4))%&gt;%
+  ungroup()%&gt;%
+  
+  select(mortality_rate_percent, countriesAndTerritories)
+
+mortal_map &lt;- left_join(covid_data_tbl, world, by = &quot;countriesAndTerritories&quot;)
+# write.csv(covid_data_tbl, &quot;covid3.csv&quot;)
+#visulization
+library(RColorBrewer)
+
+ggplot(mortal_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = mortality_rate_percent ), color = &quot;white&quot;)+
+  expand_limits(x=world$long, y = world$lat)+
+  
+  scale_fill_gradient(low = &quot;#E31A1C&quot;, high = &quot;#000000&quot;)</code></pre>
+<p><img src="journal_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 
 
 
